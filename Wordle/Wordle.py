@@ -213,7 +213,6 @@ def solve_wordle_astar(target_word: str, all_words: List[str], max_guesses: int 
 # UI: WordleGame with Auto-Solve
 # -----------------------------
 class WordleGame:
-    """NYT look-alike Wordle using tkinter with on-screen keyboard and auto-solve."""
 
     def __init__(self, root: tk.Tk, debug: bool = False) -> None:
         self.root = root
@@ -495,13 +494,6 @@ class WordleGame:
         solver_thread.start()
 
     def _run_solver_thread(self) -> None:
-        """
-        Use the iterative A* suggestion strategy (find_best_guess_astar) to
-        generate a concrete sequence of guesses by simulating feedback from
-        the current target. This mirrors your CLI flow: pick best guess,
-        compute feedback using get_pattern(target), filter candidates, repeat.
-        This guarantees the GUI animator receives a concrete sequence.
-        """
         # Use lowercase canonical form for comparisons
         target = self.target_word.lower()
 
@@ -524,7 +516,6 @@ class WordleGame:
         self.root.after(0, lambda h=history, t=target: self._animate_solver_history(h, t))
 
     def _animate_solver_history(self, history: List[Tuple[str, Tuple[int, ...]]], target_override: Optional[str] = None) -> None:
-        """Animate the solver's guesses sequentially. Each entry is (guess, pattern)."""
         if not history:
             self.flash_message("Solver failed", duration=1500)
             return
