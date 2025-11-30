@@ -495,25 +495,32 @@ class WordleGame:
         solver_thread.start()
 
     def _run_solver_thread(self) -> None:
-        # Run solver (search knows the target word)
-        target = self.target_word
-        history, expanded = solve_wordle_astar(target, WORD_LIST, max_guesses=ROWS, verbose=False)
-        # history is list of (guess, pattern). If empty, force a simple greedy path.
-        if not history:
-            # fallback: try greedy iterative simulation
-            guesses = []
-            candidates = WORD_LIST.copy()
-            for _ in range(ROWS):
-                g = find_best_guess_astar(candidates, WORD_LIST)
-                p = get_pattern(g, target)
-                guesses.append((g, p))
-                candidates = filter_words(candidates, g, p)
-                if p == (2, 2, 2, 2, 2):
-                    break
-            history = guesses
+        """
+        Use the iterative A* suggestion strategy (find_best_guess_astar) to
+        generate a concrete sequence of guesses by simulating feedback from
+        the current target. This mirrors your CLI flow: pick best guess,
+        compute feedback using get_pattern(target), filter candidates, repeat.
+        This guarantees the GUI animator receives a concrete sequence.
+        """
+        # Use lowercase canonical form for comparisons
+        target = self.target_word.lower()
+
+        candidates = WORD_LIST.copy()
+        history: List[Tuple[str, Tuple[int, ...]]] = []
+
+        for _ in range(ROWS):
+            if not candidates:
+                break
+            # choose best guess from remaining candidates (A*-informed)
+            guess = find_best_guess_astar(candidates, WORD_LIST)
+            pattern = get_pattern(guess, target)
+            history.append((guess, pattern))
+            if pattern == (2, 2, 2, 2, 2):
+                break
+            # filter candidates for next iteration
+            candidates = filter_words(candidates, guess, pattern)
 
         # schedule animation of the solver's guess sequence on the main thread
-        # pass the solver's target into the animator so start_new_game() won't overwrite it
         self.root.after(0, lambda h=history, t=target: self._animate_solver_history(h, t))
 
     def _animate_solver_history(self, history: List[Tuple[str, Tuple[int, ...]]], target_override: Optional[str] = None) -> None:
@@ -540,10 +547,6 @@ class WordleGame:
             self.root.after(delay_acc, make_step)
             # increment by reveal length
             delay_acc += (COLS - 1) * REVEAL_DELAY_MS + 500
-
-    # -----------------------------
-    # end class
-    # -----------------------------
 
 
 if __name__ == "__main__":
