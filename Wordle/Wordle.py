@@ -7,8 +7,7 @@ from collections import Counter
 from pathlib import Path
 from typing import List, Tuple, Optional
 
-# Load a word list file (one word per line). Normalize to lowercase,
-# keep only 5-letter alphabetic words, remove duplicates, preserve order.
+
 def load_word_list(path: Path) -> List[str]:
     if path.exists():
         with path.open("r", encoding="utf-8") as fh:
@@ -22,7 +21,6 @@ def load_word_list(path: Path) -> List[str]:
                 out.append(w)
         return out
 
-    # Fallback minimal list (keeps previous demo behavior if file missing)
     return [
         "apple","beach","brain","bread","brush","chair","chest","chord","click","clock",
         "cloud","dance","diary","drink","drive","earth","feast","field","fruit","glass",
@@ -38,7 +36,7 @@ DEFAULT_WORDLIST_PATH = Path(__file__).parent / "wordlists" / "wordle_words.txt"
 WORD_LIST = load_word_list(DEFAULT_WORDLIST_PATH)
 
 
-# --- NYT-like Theme & Layout ---
+
 BG = "#121213"               # page background
 EMPTY_BG = BG                # empty tile background (same as page)
 EMPTY_BORDER = "#3a3a3c"     # empty tile border
@@ -56,9 +54,6 @@ CELL_SIZE = 74
 REVEAL_DELAY_MS = 260
 
 
-# -----------------------------
-# Solver (A* variant - true expansion)
-# -----------------------------
 def get_pattern(guess: str, target: str) -> Tuple[int, ...]:
     pattern = [0] * 5
     target_counts = Counter(target)
